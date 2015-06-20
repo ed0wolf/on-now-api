@@ -1,13 +1,12 @@
-var express = require('express');
-var app = express();
+var restify = require('restify');
+var server = restify.createServer();
 
-app.set('port', (process.env.PORT || 5000));
-app.use(express.static(__dirname + '/public'));
-
-app.get('/', function(request, response) {
-  response.send('Hello World!');
+server.get('/', function(req, res, next) {
+    res.send('hello world');
+    return next()
 });
 
-app.listen(app.get('port'), function() {
-  console.log('Node app is running on port', app.get('port'));
+var port = process.env.PORT || 12345;
+server.listen(port, function() {
+  console.log('Listening on %s', server.url);
 });
