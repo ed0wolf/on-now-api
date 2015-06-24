@@ -1,0 +1,82 @@
+var request = require('request'),
+    sourcer = require('../src/sourcer'),
+    parseXml = require('xml2js');
+
+describe('sourcer', function() {
+    describe('when sourcing a listing', function() {
+        var getCallback,
+            channel, 
+            promise;
+        beforeEach(function() {
+            channel = 'bbc1';
+            spyOn(request, 'get').and.callFake(function(url, cb) {
+               getCallback = cb;
+            });
+
+            promise = sourcer.sourceListings(channel);
+        });
+        
+        it('should get the listings from the correct source', function() {
+            expect(request.get).toHaveBeenCalledWith(
+                'http://bleb.org/tv/data/listings/0/'+channel+'.xml', jasmine.any(Function));
+        });
+
+        describe('but an error is thrown', function() {
+            var error;
+            beforeEach(function() {
+                error = new Error('something bad happened');
+                getCallback(error, null);
+            });
+
+            it('should callback the error', function(done) {
+                promise.catch(function(e) {
+                    expect(e.cause).toBe(error);
+                    done();
+                });
+            });
+        });
+        
+        describe('and a non-200 status code is returned', function() {
+            var statusCode;
+            beforeEach(function() {
+                statusCode = 500;
+                var res = {
+                    statusCode: statusCode,
+                    body: 'Errrrrrr!'
+                };
+                getCallback(null, res);
+            });
+
+            it('should resolve the promise with the body', function(done) {
+                promise.catch(function(e) {
+                    var expectedError = new Error('While sourcing listings for '+channel+', got statusCode: '+statusCode);
+                    expect(e.cause).toEqual(expectedError);
+                    done();
+                });
+            });
+        });
+
+        describe('and a 200 status code is returned', function() {
+            var body;
+            beforeEach(function() {
+                body = "<xml></xml>";
+                var res = {
+                    statusCode: 200,
+                    body: body
+                };
+                spyOn('parseString
+                getCallback(null, res);
+            });
+            
+            it('should parse the resulting xml', function() {
+                expect
+            });
+            it('should resolve the promise with the body', function(done) {
+                promise.then(function(data) {
+                    expect(data).toBe(body);
+                    done();
+                });
+            });
+        });
+    });
+});
